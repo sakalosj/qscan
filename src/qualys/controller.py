@@ -7,7 +7,8 @@ from concurrent.futures.thread import ThreadPoolExecutor as thr_pool
 
 from session_pool import SessionPool
 
-from qualys.request import get_all_requests, get_new_requests, process_request
+from hlp.const import status
+from qualys.request import get_all_requests, get_new_requests, process_request, update_request_status
 from qualys import cfg, ScopedSession
 
 """
@@ -32,43 +33,41 @@ cfg.OPS_DEV_MYSQL_CONF = config['ops-dev.db']
 def main():
     session = ScopedSession()
     request_set = get_all_requests(session)
+    session.commit()
     logger.info('Initial requests to process not(failed|finished):{}'.format(request_set))
 
-    with thr_pool(max_workers=5) as executor:
-        future_to_id ={}
+    with thr_pool(max_workers=5, thread_name_prefix='main_thrpool') as executor:
+        future_to_id = {}
 
         while True:
-            try:
-                session.commit()
-                new_requests = get_new_requests(session)
-                logger.info('processing new requests {}'.format(new_requests))
-                request_set.update(new_requests)
-                for id in request_set:
-                    if id in future_to_id.values():
-                        logger.info('request id is allready processing in thread')
-                        continue
+            session.commit()
+            new_requests = get_new_requests(session)
+            logger.info('processing new requests {}'.format(new_requests))
+            request_set.update(new_requests)
+            for id in request_set:
+                if id in future_to_id.values():
+                    logger.info('request id is allready processing in thread')
+                    continue
 
-                    logger.debug('starting thread for request {}'.format(id))
-                    future_to_id[executor.submit(process_request, id)] = id
+                logger.debug('starting thread for request {}'.format(id))
+                future_to_id[executor.submit(process_request, id)] = id
 
+            logger.info('processing threads in future_to_id:{}'.format(future_to_id))
+            done = [future_id for future_id in future_to_id.items() if future_id[0].done()]
+            logger.info('threads done: {}'.format(done))
+            for future, id in done:
+                try:
+                    future.result()
+                except Exception:
+                    logger.exception('request {} raised exception'.format(id))
+                    update_request_status(id, status['FAILED'], session)
+                    session.commit()
+                else:
+                    logger.info('request {} thread finished without excception'.format(id))
+                finally:
+                    future_to_id.pop(future)
+            request_set.clear()
 
-                logger.info('processing threads in future_to_id:{}'.format(future_to_id))
-                done = [future_id for future_id in future_to_id.items() if future_id[0].done()]
-                logger.info('threads done: {}'.format(done))
-                for future, id in done:
-                    try:
-                        future.result()
-                    except BaseException:
-                        # maybe set request to failed
-                        logger.error('request {} failed'.format(id))
-                    else:
-                        logger.info('request {} thread finished correctly'.format(id))
-                    finally:
-                        future_to_id.pop(future)
-                request_set.clear()
-            except Exception as e:
-                print(e)
-                raise
             time.sleep(5)
 
 def init_logger():

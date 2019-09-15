@@ -20,7 +20,6 @@ logger = logging.getLogger('qualys.request')
 def get_all_requests(session):
     db_list = session.query(Request).filter(
         and_(Request.status.in_(status.values()), Request.status.notin_([status['FINISHED'], status['FAILED']]))).all()
-    session.commit()
     return {db_instance.id for db_instance in db_list}
 
 
@@ -32,6 +31,9 @@ def get_new_requests(session):
 def process_request(id):
     with session_scope() as session:
         session.query(Request).get(id).start(session)
+
+def update_request_status(id, status, session):
+    session.query(Request.status).filter_by(id=id).update({'status': status})
 
 
 class Request(BaseMixin, Base):
