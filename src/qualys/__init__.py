@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -30,6 +30,21 @@ class BaseMixin:
     @declared_attr
     def __tablename__(cls):
         return cls.__name__.lower()
+
+    @classmethod
+    def get_one_or_create(cls, session, **kwargs):
+        instance = session.query(cls).filter_by(**kwargs).with_for_update().one_or_none()
+
+        if not instance:
+            pk = [key.name for key in inspect(cls).primary_key]
+            q = session.query(cls).filter_by(**{key: value for key, value in kwargs.items() if key in pk})
+            # check if kwargs contains pk and if yes check if pk exists in db
+            if set(pk).issubset(kwargs.keys()) and session.query(q.exists()).scalar():
+                # error because first query failed, no entry with all matching fileds exists, but pk exist
+                raise ValueError('attributes contain existing pk, but other values dont match db')
+            instance = cls(**kwargs)
+
+        return instance
 
     @classmethod
     def populate(cls, data_list, session):

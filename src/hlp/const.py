@@ -1,4 +1,3 @@
-from types import SimpleNamespace
 
 status = {'NEW': 'new',
           'STARTING': 'starting',
@@ -6,6 +5,33 @@ status = {'NEW': 'new',
           'FINISHED': 'finished',
           'FAILED': 'failed'
           }
+
+# methods = {'GET': 'get',
+#            'POST': 'post'}
+
+
+
+class CustomNS:
+    @classmethod
+    def keys(cls):
+        return [i for i in cls.__dict__.keys() if i[:1] != '_']
+
+    @classmethod
+    def values(cls):
+        return [i[1] for i in cls.__dict__.items() if i[0][:1] != '_']
+
+
+class methods(CustomNS):
+    GET = 'get'
+    POST = 'post'
+
+
+class stat(CustomNS):
+    NEW = 'new'
+    STARTING = 'starting'
+    RUNNING = 'running'
+    FINISHED = 'finished'
+    FAILED = 'failed'
 
 test_report_data = {'datetime': '2019-09-11T01:16:18+00:00', 'id': 6,
                     'servers': [{'ip': '10.0.2.3'}, {'ip': '20.0.2.3'}, {'ip': '30.0.1.1'}, {'ip': '30.0.2.3'}],

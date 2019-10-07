@@ -1,6 +1,7 @@
 #test imports and def
 import json
 import threading
+from unittest import mock
 
 import jsonify
 from jsonify import *
@@ -13,8 +14,11 @@ from sqlalchemy import and_, or_, inspect
 # from qualys.server import *
 from hlp.const import test_report_data
 from qualys import *
+from qualys.api import Api
 from qualys.request import process_request
 from qualys.scan import process_scan
+
+
 
 
 
@@ -82,11 +86,11 @@ def tex_threaded(q):
 # threading.Thread(target=tex_threaded, args= (q,)).start()
 # json
 #
-# s_pool = SessionPool(name='session_pool')
-# s_pool.start()
+s_pool = SessionPool(name='session_pool')
+s_pool.start()
 #
 # comm_queue = s_pool.comm_queue
-# # report1 = s.query(Report).first()
+report1 = s.query(Report).first()
 # request1 = s.query(Request).first()
 #
 # in_queue = Queue()
@@ -101,13 +105,19 @@ def tex_threaded(q):
 #
 #
 # report1 = s.query(Report).first()
-# report1_dict = {"servers": list(report1.servers.keys()), "title": "sccan1"}
+report1_dict = {"servers": list(report1.servers.keys()), "title": "sccan1"}
 # task_create_report = TaskRequest('post', in_queue, 'http://localhost:5000/api/v1.0/reports', dict({'json': report1_dict}))
 #
 #
-# task_get_report = TaskRequest('get', in_queue, 'http://localhost:5000/api/v1.0/reports/3', dict({'json': report1_dict}))
+# task_get_report = TaskRequest('get', 'http://localhost:5000/api/v1.0/reports/3')
 # task_get_report1 = TaskRequest('get', in_queue, 'tp://localhost:5000/api/v1.0/reports/3', dict({'json': report1_dict}))
 def put_task(task):
+    s_pool = SessionPool(name='session_pool')
+    s_pool.start()
+
+    comm_queue = s_pool.comm_queue
+
+    in_queue = Queue()
     comm_queue.put(task)
     response =  in_queue.get()
     return response

@@ -76,8 +76,8 @@ class Scan(BaseMixin, Base):
                 self._launch_scan()
             result = self._get_result()
         except Exception:
-            # logger.exception('scan {} failed'.format(self.id))
-            logger.error('scan {} failed'.format(self.id))
+            logger.exception('scan {} failed'.format(self.id))
+            # logger.error('scan {} failed'.format(self.id))
             session.rollback()
             self.status = status['FAILED']
             session.commit()
@@ -104,7 +104,7 @@ class Scan(BaseMixin, Base):
         url = 'http://localhost:5000/api/v1.0/scans/{}'.format(self.qid)
 
         while True:
-            json_data = send_task(method, url, return_json=True)
+            json_data = send_task(method, url).json()
             if json_data['status'] in [status['FINISHED'], status['FAILED']]:
                 break
             time.sleep(3)

@@ -72,7 +72,7 @@ language = None
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+# pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -80,7 +80,8 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'flask'
+# html_theme = 'alabaster'
 # html_theme = 'classic'
 
 # html_theme = "sphinx_rtd_theme"

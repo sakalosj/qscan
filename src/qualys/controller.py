@@ -1,15 +1,13 @@
-import os
 import time
 import logging
 
-import configparser
 from concurrent.futures.thread import ThreadPoolExecutor as thr_pool
 
 from session_pool import SessionPool
 
 from hlp.const import status
 from qualys.request import get_all_requests, get_new_requests, process_request, update_request_status
-from qualys import cfg, ScopedSession
+from qualys import ScopedSession
 
 """
 
@@ -25,12 +23,20 @@ logger.setLevel(logging.DEBUG)
 # fh.setFormatter(formatter)
 # dbLogger.addHandler(fh)
 
-logger.debug('Reading config file')
-config = configparser.ConfigParser()
-config.read('src/qualys_scan.conf')
-cfg.OPS_DEV_MYSQL_CONF = config['ops-dev.db']
+# logger.debug('Reading config file')
+# config = configparser.ConfigParser()
+# config.read('src/qualys_scan.conf')
+# cfg.OPS_DEV_MYSQL_CONF = config['ops-dev.db']
 
-def main():
+
+def main() -> None:
+    """
+    Main function responsible for basic application flow
+
+    Returns:
+        None
+
+    """
     session = ScopedSession()
     request_set = get_all_requests(session)
     session.commit()
@@ -70,7 +76,13 @@ def main():
 
             time.sleep(5)
 
-def init_logger():
+def init_logger() -> None:
+    """
+    logging initialization
+
+    Returns:
+
+    """
     logger = logging.getLogger('qualys')
     logger.setLevel(logging.DEBUG)
     fh = logging.FileHandler('log/qualys_scan.log')
