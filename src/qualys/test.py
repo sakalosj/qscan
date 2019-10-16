@@ -1,44 +1,19 @@
-#test imports and def
-import json
-import threading
-from unittest import mock
-
-import jsonify
-from jsonify import *
 
 from session_pool import SessionPool, TaskRequest
-from session_pool.session_pool import send_task
-
-from sqlalchemy import and_, or_, inspect
-# from qualys.request import *
-# from qualys.server import *
-from hlp.const import test_report_data
 from qualys import *
-from qualys.api import Api
-from qualys.request import process_request
-from qualys.scan import process_scan
 
 
 
 
 
 
-# # print(self.id, 'started')
-# # print(self.id, 'started')
-s = ScopedSession()
-# # r =  s.query(Request).first()
-# ttt=inspect(Server)
-# # r1 = s.query(Request).first()
-# s1 =s.query(Server).first()
-# # s2 =s.query(Server).all()[1]
-# # s3 =s.query(Server).all()[2]
-# s_l = s.query(Server).all()[0:5]
 
 
 
 from concurrent.futures import ThreadPoolExecutor as TEX
 from time import sleep
 
+s = ScopedSession()
 l = [(i, 'n' + str(i), 1) for i in range(8)]
 
 
@@ -58,34 +33,7 @@ def tex(ss):
             run_f = {executor.submit(f, *attr): attr for attr in l}
 
 
-# for x in range (3):
-#     l = ['AAAAAAAAAAAAAAAAA','XXXXXXXXXXXXXXXX','---------------------']
-#     with TEX(max_workers=3) as executor:
-#         print('main adding')
-#         run_f = {executor.submit(tex, attr): attr for attr in l}
 
-from queue import Queue
-def ff(a):
-    print('started', a)
-    sleep(3)
-    print('finished', a)
-
-def tex_threaded(q):
-    with TEX(max_workers=3) as executor:
-        while True:
-            item = q.get()
-            if item is None:
-                break
-            executor.submit(ff, item)
-            print('item', item, 'submitted')
-
-
-# q = Queue()
-#
-#
-# threading.Thread(target=tex_threaded, args= (q,)).start()
-# json
-#
 s_pool = SessionPool(name='session_pool')
 s_pool.start()
 #
@@ -132,3 +80,6 @@ def test_request(i):
     # process_request(req.id)
     return req
 
+from rq import Queue
+from redis import Redis
+import time

@@ -1,15 +1,14 @@
 import logging
 import time
 
-import session_pool
-from sqlalchemy import Column, String, DateTime, Integer, ForeignKey, orm
+import openapi_client
+from sqlalchemy import Column, String, DateTime, Integer, ForeignKey
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 
-from hlp.const import status, methods, stat
+from hlp.const import status, stat
 from qualys import BaseMixin, Base
 import qualys.api as api
-# from qualys.api import Api
 from qualys.patch import Patch
 from qualys.vulner import Vulner
 
@@ -21,6 +20,10 @@ logger = logging.getLogger(__name__)
 api_url = 'http://localhost:5000/api/v1.0/'
 section = 'report'
 base_url = '/'.join([api_url, section])
+
+def test():
+    print('testtttt')
+    return ('testtttttttttttt')
 
 
 class Report(BaseMixin, Base):
@@ -39,7 +42,8 @@ class Report(BaseMixin, Base):
     servers = association_proxy('request', 'servers')
 
     def init_api(self):
-        self.api = api.Api(section='reports')
+        self.api = api.Api(section='report')
+        # self.api = openapi_client.ReportApi()
 
     def start(self, session):
         self.init_api()
@@ -70,10 +74,10 @@ class Report(BaseMixin, Base):
         TODO: add validation of returned json
         """
 
-        report_dict = {"servers": self._get_ip_list(), "title": self.title}
+        report_dict = {"servers": [ {'ip': ip} for ip in self._get_ip_list()], "title": self.title}
 
-        json_data = self.api.post(report_dict)
-        self.qid = json_data['id']
+        report = self.api.post(report_dict)
+        self.qid = report['id']
         self.status = status['RUNNING']
 
     def _get_ip_list(self) -> list:
@@ -124,7 +128,7 @@ class Report(BaseMixin, Base):
         """
         logger.info('processing report {} data: {}'.format(self.id, response_data))
         self.qid = response_data['id']
-        for ip, patch_vulner in response_data['servers_data'].items():
+        for ip, patch_vulner in response_data['servers'].items():
             logger.info('processing ip: {}'.format(ip))
             self.servers[ip].last_report = self.id
 

@@ -96,7 +96,5 @@ def init_logger() -> None:
 
 
 if __name__ == "__main__":
-    session_pool = SessionPool()
-    session_pool.start()
     init_logger()
     main()

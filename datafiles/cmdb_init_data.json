@@ -1,0 +1,130 @@
+{
+  "server": [
+    {
+      "id": 1,
+      "hostname": "lxem1",
+      "ip": "10.0.1.1",
+      "platform": "linux",
+      "region": "EMEA"
+    },
+    {
+      "id": 2,
+      "hostname": "lxem2",
+      "ip": "10.0.1.2",
+      "platform": "linux",
+      "region": "EMEA"
+    },
+    {
+      "id": 3,
+      "hostname": "lxem3",
+      "ip": "10.0.1.3",
+      "platform": "linux",
+      "region": "EMEA"
+    },
+    {
+      "id": 4,
+      "hostname": "lxus1",
+      "ip": "20.0.1.1",
+      "platform": "linux",
+      "region": "AM"
+    },
+    {
+      "id": 5,
+      "hostname": "lxus2",
+      "ip": "20.0.1.2",
+      "platform": "linux",
+      "region": "AM"
+    },
+    {
+      "id": 6,
+      "hostname": "lxus3",
+      "ip": "20.0.1.3",
+      "platform": "linux",
+      "region": "AM"
+    },
+    {
+      "id": 7,
+      "hostname": "lxap1",
+      "ip": "30.0.1.1",
+      "platform": "linux",
+      "region": "AP"
+    },
+    {
+      "id": 8,
+      "hostname": "lxap2",
+      "ip": "30.0.1.2",
+      "platform": "linux",
+      "region": "AP"
+    },
+    {
+      "id": 9,
+      "hostname": "lxap3",
+      "ip": "30.0.1.3",
+      "platform": "linux",
+      "region": "AP"
+    },
+    {
+      "id": 10,
+      "hostname": "winem1",
+      "ip": "10.0.2.1",
+      "platform": "windows",
+      "region": "EMEA"
+    },
+    {
+      "id": 11,
+      "hostname": "winem2",
+      "ip": "10.0.2.2",
+      "platform": "windows",
+      "region": "EMEA"
+    },
+    {
+      "id": 12,
+      "hostname": "winem3",
+      "ip": "10.0.2.3",
+      "platform": "windows",
+      "region": "EMEA"
+    },
+    {
+      "id": 13,
+      "hostname": "winus1",
+      "ip": "20.0.2.1",
+      "platform": "windows",
+      "region": "AM"
+    },
+    {
+      "id": 14,
+      "hostname": "winus2",
+      "ip": "20.0.2.2",
+      "platform": "windows",
+      "region": "AM"
+    },
+    {
+      "id": 15,
+      "hostname": "winus3",
+      "ip": "20.0.2.3",
+      "platform": "windows",
+      "region": "AM"
+    },
+    {
+      "id": 16,
+      "hostname": "winap1",
+      "ip": "30.0.2.1",
+      "platform": "windows",
+      "region": "AP"
+    },
+    {
+      "id": 17,
+      "hostname": "winap2",
+      "ip": "30.0.2.2",
+      "platform": "windows",
+      "region": "AP"
+    },
+    {
+      "id": 18,
+      "hostname": "winap3",
+      "ip": "30.0.2.3",
+      "platform": "windows",
+      "region": "AP"
+    }
+  ]
+}

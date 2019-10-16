@@ -5,11 +5,13 @@ from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 
-engine_qualys = create_engine('mysql+pymysql://qualys:123456@localhost/qualys_scan_test')
+engine_qualys = create_engine('mysql+pymysql://root:123456@localhost:3307/qualys_scan')
 Base = declarative_base()
 ScopedSession = scoped_session(sessionmaker(bind=engine_qualys))
 
-
+def get_new_engine_session():
+    e = create_engine('mysql+pymysql://root:123456@localhost:3307/qualys_scan')
+    return sessionmaker(bind=e)()
 
 
 @contextmanager

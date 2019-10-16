@@ -32,19 +32,14 @@ Todo:
    http://google.github.io/styleguide/pyguide.html
 
 """
-import json
-import queue
-import time
 import logging
 
-from session_pool.session_pool import send_task
 from sqlalchemy import Column, DateTime, String, Integer, ForeignKey
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 
 from hlp.const import status
-from qualys import Base, BaseMixin, session_scope
-from session_pool import SessionPool, TaskRequest
+from qualys import Base, BaseMixin, session_scope, api, get_new_engine_session
 
 logger = logging.getLogger('qualys.scan')
 
@@ -52,6 +47,12 @@ logger = logging.getLogger('qualys.scan')
 def process_scan(id):
     with session_scope() as session:
         session.query(Scan).get(id).start(session)
+
+def process_scan_q(id):
+    print('get session')
+    session = get_new_engine_session()
+    print('starting scan')
+    session.query(Scan).get(id).start(session)
 
 
 class Scan(BaseMixin, Base):
@@ -71,10 +72,12 @@ class Scan(BaseMixin, Base):
     servers = association_proxy('request', 'servers')
 
     def start(self, session):
+        self.api = api.Api(section='scan')
         try:
             if self.status == status['NEW']:
                 self._launch_scan()
             result = self._get_result()
+
         except Exception:
             logger.exception('scan {} failed'.format(self.id))
             # logger.error('scan {} failed'.format(self.id))
@@ -86,26 +89,17 @@ class Scan(BaseMixin, Base):
         if result['status'] == status['FAILED']:
             return
         self.status = status['FINISHED']
+        session.commit()
 
     def _launch_scan(self, ):
-        url = 'http://localhost:5000/api/v1.0/scans'
         ips = [server.ip for server in self.servers.values() if server.region == self.region and server.platform == self.platform]
-        scan_dict = {"servers": ips, "title": self.title}
-        options = {'json': scan_dict}
+        scan_dict = {"servers": [{'ip': ip} for ip in ips], "title": self.title}
 
-        response = send_task('post', url, options)
-        json_data = response.json()
+        json_data = self.api.post(scan_dict)
+
         self.qid = json_data['id']
-        self.status = json_data['status']
+        self.status = status['RUNNING']
 
-    def _get_result(self ):
+    def _get_result(self):
+        return self.api.get(self.qid, check_status=True)
 
-        method = 'get'
-        url = 'http://localhost:5000/api/v1.0/scans/{}'.format(self.qid)
-
-        while True:
-            json_data = send_task(method, url).json()
-            if json_data['status'] in [status['FINISHED'], status['FAILED']]:
-                break
-            time.sleep(3)
-        return json_data
