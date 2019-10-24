@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
-from qualys import Base, BaseMixin
+from qualys.db import Base, BaseMixin
 
 logger = logging.getLogger('qualys.vulner')
 

@@ -26,7 +26,6 @@ setup(
                       'pytest-cov >= 2.6.1',
                       'requests >= 2.21.0',
                       'six >= 1.12.0',
-                      'teradata >= 15.10.0.21',
                       'urllib3 >= 1.24.1',
                       ],
 

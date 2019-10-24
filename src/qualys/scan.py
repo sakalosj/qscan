@@ -39,10 +39,10 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 
 from hlp.const import status
-from qualys import Base, BaseMixin, session_scope, api, get_new_engine_session
+from qualys import api
+from qualys.db import Base, BaseMixin, session_scope,  get_new_engine_session
 
 logger = logging.getLogger('qualys.scan')
-
 
 def process_scan(id):
     with session_scope() as session:
@@ -76,6 +76,8 @@ class Scan(BaseMixin, Base):
         try:
             if self.status == status['NEW']:
                 self._launch_scan()
+            if self.qid is None:
+                raise ValueError('Scan {} has not set qid'.format(self.id))
             result = self._get_result()
 
         except Exception:

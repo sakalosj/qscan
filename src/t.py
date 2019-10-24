@@ -1,24 +1,19 @@
 import os
-from random import randint
 from threading import get_ident
 from time import sleep
 
-import openapi_client
-from session_pool import SessionPool
 from sqlalchemy import create_engine
 
-from qualys import ScopedSession, get_new_engine_session, Request, api
-from qualys.api import Api
-from qualys.request import process_request_q
-from qualys.scan import process_scan, Scan, process_scan_q
-from qualys.rq import redis_queue
+from qualys.controller import redis_queue
+from qualys.db import ScopedSession, get_new_engine_session, init_db
+from qualys import api
+from qualys.request import Request, t
+from qualys.scan import Scan
 
-s_pool = SessionPool(name='session_pool')
-s_pool.start()
 
 s = ScopedSession()
 
-e = create_engine('mysql+pymysql://root:123456@localhost:3307/qualys_scan_test')
+e = create_engine('mysql+pymysql://root:123456@localhost:3307/qualys_scan')
 ses1 = get_new_engine_session()
 
 
@@ -51,8 +46,9 @@ def add_req(i):
                       owner='null_user')
         s.add(req)
     s.commit()
-    # process_request(req.id)
     return req
+
 
 ra = api.Api(section='report')
 sa = api.Api(section='scan')
+

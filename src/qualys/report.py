@@ -1,29 +1,17 @@
 import logging
 import time
 
-import openapi_client
 from sqlalchemy import Column, String, DateTime, Integer, ForeignKey
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 
 from hlp.const import status, stat
-from qualys import BaseMixin, Base
-import qualys.api as api
 from qualys.patch import Patch
 from qualys.vulner import Vulner
+from qualys.db import BaseMixin, Base
+import qualys.api as api
 
 logger = logging.getLogger(__name__)
-
-# config = configparser.ConfigParser()
-# config.read('src/qualys_scan.conf')
-# api_url = config['qg_rest_api']['api_url']
-api_url = 'http://localhost:5000/api/v1.0/'
-section = 'report'
-base_url = '/'.join([api_url, section])
-
-def test():
-    print('testtttt')
-    return ('testtttttttttttt')
 
 
 class Report(BaseMixin, Base):
@@ -43,7 +31,6 @@ class Report(BaseMixin, Base):
 
     def init_api(self):
         self.api = api.Api(section='report')
-        # self.api = openapi_client.ReportApi()
 
     def start(self, session):
         self.init_api()
@@ -107,7 +94,7 @@ class Report(BaseMixin, Base):
             if json_data['status'] in [stat.FINISHED, stat.FAILED]:
                 break
             if (time.time() - start_time) > timeout:
-                raise TimeoutError('report {} dindt received finished/failed status'.format(self.id))
+                raise TimeoutError('report {} didnt received finished/failed status'.format(self.id))
             time.sleep(sleep_time)
         return json_data
 
@@ -123,31 +110,22 @@ class Report(BaseMixin, Base):
             None
 
         TODO:
-            check if response server is associated wit report
+            check if response server is associated with report
 
         """
+
         logger.info('processing report {} data: {}'.format(self.id, response_data))
         self.qid = response_data['id']
         for ip, patch_vulner in response_data['servers'].items():
             logger.info('processing ip: {}'.format(ip))
             self.servers[ip].last_report = self.id
-
-            # for patch in patch_vulner['patches']:
-            #     logger.info('Processing patch: {}'.format(patch))
-            #     if patch['qid'] not in [patch.qid for patch in self.request.request_servers[ip].patches]:
-            #         patch = Patch.get_one_or_create(session, **patch)
-            #         self.request.request_servers[ip].patches.append(patch)
             self._process_response_patches(session, ip, patch_vulner['patches'])
-
-            # for vulner in patch_vulner['vulners']:
-            #     if vulner['qid'] not in [vulner.qid for vulner in self.request.request_servers[ip].vulners]:
-            #         vulner = Vulner.get_one_or_create(session, **vulner)
-            #         self.request.request_servers[ip].vulners.append(vulner)
-            self._process_response_vulners(session,ip, patch_vulner['vulners'])
+            self._process_response_vulners(session, ip, patch_vulner['vulners'])
 
     def _process_response_patches(self, session, ip, patches: list) -> None:
         """
-        Processing patches from resonse for specific ip
+        Processing patches from response for specific ip
+
         Args:
             session: sqlalchemy session
             ip: server ip
@@ -166,6 +144,7 @@ class Report(BaseMixin, Base):
     def _process_response_vulners(self, session, ip, vulners: list) -> None:
         """
         Processing vulners from resonse for specific ip
+
         Args:
             session: sqlalchemy session
             ip: server ip

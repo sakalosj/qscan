@@ -1,7 +1,7 @@
 import logging
 from sqlalchemy import Integer, Column, ForeignKey, String
 
-from qualys import Base, BaseMixin
+from qualys.db import Base, BaseMixin
 
 logger = logging.getLogger('qualys.vulner')
 

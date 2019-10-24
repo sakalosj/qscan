@@ -4,18 +4,18 @@ mapped to db table 'request' via sqlalchemy orm.
 """
 import datetime
 import logging
+import pprint
 import time
-from concurrent.futures.thread import ThreadPoolExecutor as thr_pool
 
 from sqlalchemy import and_, Column, Integer, String
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from hlp.const import status
-from qualys.association_tables import Request2Server
-from . import Base, BaseMixin, session_scope, get_or_create, get_new_engine_session
+from qualys.server import ServerCMDB, Server
 from qualys.report import Report
-from qualys.scan import Scan, process_scan, process_scan_q
-from qualys.server import Server, ServerCMDB
+from qualys.association_tables import Request2Server
+from qualys.db import Base, BaseMixin, get_new_engine_session
+from qualys.scan import process_scan_q, Scan
 
 logger = logging.getLogger('qualys.request')
 
@@ -51,21 +51,7 @@ def get_new_requests(session) -> set:
     return {db_instance.id for db_instance in db_list}
 
 
-def process_request(id: int) -> None:
-    """
-    wrapper function to start request processing. Main purpose is to be able to start also constructor in new thread,
-    because of sqlalchemy session concurrency support.
-
-    Args:
-        id: id of entry in request table
-
-    Returns:
-
-    """
-    with session_scope() as session:
-        session.query(Request).get(id).start(session)
-
-def process_request_q(id: int, redis_queue) -> None:
+def process_request(redis_queue, id: int) -> None:
     """
     wrapper function to start request processing via redis queue. Because of worker is running in new process sqlclhemy requires new  engine
 
@@ -75,9 +61,7 @@ def process_request_q(id: int, redis_queue) -> None:
     Returns:
 
     """
-    print('get session')
     session = get_new_engine_session()
-    print('starting request')
     session.query(Request).get(id).start(session, redis_queue)
 
 
@@ -162,7 +146,8 @@ class Request(BaseMixin, Base):
         current_servers = list(self.servers.keys())
         for ip in self.ip.split(','):
             if ip not in current_servers:
-                self.servers[ip] = get_or_create(session, Server, ip=ip)
+                # self.servers[ip] = get_or_create(session, Server, ip=ip)
+                self.servers[ip] = Server.get_one_or_create(session, ip=ip)
                 # # potential deadlock ???
                 # self.servers[ip].validate_server_cmdb_id_fk(session)
                 current_servers.append(ip)
@@ -187,7 +172,6 @@ class Request(BaseMixin, Base):
 
         scan_jobs ={id: redis_queue.enqueue(process_scan_q, id) for id in scan_id_list}
 
-
         while scan_jobs:
             for id, scan_job in list(scan_jobs.items()):
                 if scan_job.is_finished:
@@ -196,7 +180,9 @@ class Request(BaseMixin, Base):
                 if scan_job.is_failed:
                     # maybe set request to failed
                     logger.exception('scan {} failed'.format(id))
+                    scan_jobs.pop(id)
             time.sleep(1)
+            pprint.pprint('scans still running {}'.format(scan_jobs))
 
         # with thr_pool(max_workers=6, thread_name_prefix='-'.join(['req', str(self.id), 'scan'])) as executor:
         #     future_to_id = {executor.submit(process_scan, id): id for id in scan_id_list}

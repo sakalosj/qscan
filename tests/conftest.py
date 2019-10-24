@@ -2,12 +2,14 @@ import functools
 import itertools
 
 import pytest
-import session_pool
 from pytest_mock import mocker
-from session_pool import send_task
 
 import qualys
-from qualys import report, Server, Request, Report, Vulner, Patch
+from qualys.server import Server
+from qualys.request import Request
+from qualys.report import Report
+from qualys.vulner import Vulner
+from qualys.patch import Patch
 import qualys.api as api
 
 
@@ -110,7 +112,7 @@ def server_mock(mocker, request):
     def server_mock_factory(init_data=None):
         _server_mock = mocker.Mock(spec=Server)
         if init_data:
-            _server_mock.id = init_data.get('id',None)
+            _server_mock.id = init_data.get('id', None)
             _server_mock.last_report = init_data.get('last_report', None)
         return _server_mock
 
@@ -159,3 +161,9 @@ def report_mock(mocker):
         test_report = Report()
         test_report.servers = {'1.1.1.1': server_mock(), '2.2.2.2': server_mock()}
 
+
+@pytest.fixture
+def test_docker_db(function_scoped_container_getter):
+    db = function_scoped_container_getter.get('test_mysql_qualys_scan')
+    init_db()
+    return db.netwo

@@ -4,13 +4,14 @@ services:
   mysql_qualys_scan:
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
-    restart: always
     ports:
       -  "3307:3306"
     environment:
         MYSQL_ROOT_PASSWORD: 123456
     volumes:
       -  mysql_qualys_scan:/var/lib/mysql
+    networks:
+      - inner
 
   redis:
     image: 'bitnami/redis:latest'
@@ -18,6 +19,8 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "6379:6379"
+    networks:
+      - inner
 
   rq-dashboard:
     image: 'eoranged/rq-dashboard'
@@ -27,17 +30,34 @@ services:
       RQ_DASHBOARD_PASSWORD: password
     ports:
       - "9181:9181"
+    networks:
+      - inner
 
   qualys_scan_main:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile_main
+    env_file:
+      - ../cfg/qualys_scan.env
+    networks:
+      - inner
+      - qg-qs-ext-nw
 
   qualys_scan_wrokers:
     build:
       context: ..
       dockerfile: ./docker/Dockerfile_worker
-
+    env_file:
+      - ../cfg/qualys_scan.env
+    networks:
+      - inner
+      - qg-qs-ext-nw
 
 volumes:
   mysql_qualys_scan:
+
+networks:
+  inner:
+  qg-qs-ext-nw:
+    external: true
+

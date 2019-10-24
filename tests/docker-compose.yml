@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  test_mysql_qualys_scan:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      -  "53307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456

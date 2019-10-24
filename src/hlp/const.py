@@ -1,3 +1,6 @@
+from enum import Enum
+
+from hlp.helpers import CustomNS
 
 status = {'NEW': 'new',
           'STARTING': 'starting',
@@ -6,19 +9,6 @@ status = {'NEW': 'new',
           'FAILED': 'failed'
           }
 
-# methods = {'GET': 'get',
-#            'POST': 'post'}
-
-
-
-class CustomNS:
-    @classmethod
-    def keys(cls):
-        return [i for i in cls.__dict__.keys() if i[:1] != '_']
-
-    @classmethod
-    def values(cls):
-        return [i[1] for i in cls.__dict__.items() if i[0][:1] != '_']
 
 
 class methods(CustomNS):

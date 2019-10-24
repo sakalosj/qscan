@@ -1,27 +1,12 @@
-import re
-
 from sqlalchemy import Column, String, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.exc import NoResultFound
 
-from qualys import cfg, BaseMixin, ScopedSession, Base
+from qualys.db import BaseMixin, ScopedSession, Base
 import logging
-import ipaddress
-
-
 
 logger = logging.getLogger('qualys.server')
-#
-# def get_or_create(session, model, **kwargs):
-#     instance = session.query(model).filter_by(**kwargs).first()
-#     if instance:
-#         return instance
-#     else:
-#         instance = model(**kwargs)
-#         session.add(instance)
-#         session.commit()
-#         return instance
 
 
 class Server(BaseMixin, Base):
@@ -60,7 +45,6 @@ class Server(BaseMixin, Base):
             raise AttributeError('incorect server_cmdb_id_fk')
 
 
-
 class ServerCMDB(BaseMixin, Base):
     __tablename__ = 'server'
     __table_args__ = (
@@ -68,7 +52,7 @@ class ServerCMDB(BaseMixin, Base):
     )
 
     id = Column(Integer, primary_key=True)
-    hostname = Column(String(30),nullable=False)
-    ip = Column(String(30),nullable=False, unique=True)
-    platform = Column(String(30),nullable=False)
-    region = Column(String(30),nullable=False)
+    hostname = Column(String(30), nullable=False)
+    ip = Column(String(30), nullable=False, unique=True)
+    platform = Column(String(30), nullable=False)
+    region = Column(String(30), nullable=False)

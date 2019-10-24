@@ -3,30 +3,29 @@ import logging
 
 from concurrent.futures.thread import ThreadPoolExecutor as thr_pool
 
-from session_pool import SessionPool
+from redis import Redis
+from rq import Queue
 
+from hlp.cfg import LOG_FILE, REDIS_HOST, QS_DB_URI
 from hlp.const import status
+from qualys.db import ScopedSession, init_db
 from qualys.request import get_all_requests, get_new_requests, process_request, update_request_status
-from qualys import ScopedSession
-
-"""
-
-"""
 
 
-logger = logging.getLogger('qualys.controller')
-logger.setLevel(logging.DEBUG)
 
-# fh = logging.FileHandler(cfg.DB_LOG_FILE)
-# fh.setLevel(logging.DEBUG)
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(threadName)s - %(message)s', '%Y-%m-%d %H:%M:%S')
-# fh.setFormatter(formatter)
-# dbLogger.addHandler(fh)
+logger = logging.getLogger('controller')
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler(LOG_FILE)
+fh.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S')
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+logger.addHandler(ch)
 
-# logger.debug('Reading config file')
-# config = configparser.ConfigParser()
-# config.read('src/qualys_scan.conf')
-# cfg.OPS_DEV_MYSQL_CONF = config['ops-dev.db']
+redis_conn = Redis(REDIS_HOST, 6379)
+redis_queue = Queue(connection=redis_conn)  # no args implies the default queue
 
 
 def main() -> None:
@@ -56,7 +55,7 @@ def main() -> None:
                     continue
 
                 logger.debug('starting thread for request {}'.format(id))
-                future_to_id[executor.submit(process_request, id)] = id
+                future_to_id[executor.submit(process_request,redis_queue, id)] = id
 
             logger.info('processing threads in future_to_id:{}'.format(future_to_id))
             done = [future_id for future_id in future_to_id.items() if future_id[0].done()]
@@ -76,25 +75,7 @@ def main() -> None:
 
             time.sleep(5)
 
-def init_logger() -> None:
-    """
-    logging initialization
-
-    Returns:
-
-    """
-    logger = logging.getLogger('qualys')
-    logger.setLevel(logging.DEBUG)
-    fh = logging.FileHandler('log/qualys_scan.log')
-    fh.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%Y-%m-%d %H:%M:%S')
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    logger.addHandler(ch)
-
 
 if __name__ == "__main__":
-    init_logger()
+    init_db(QS_DB_URI)
     main()

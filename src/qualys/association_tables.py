@@ -1,9 +1,9 @@
-from sqlalchemy import Integer, Column, String, DateTime, ForeignKey, ForeignKeyConstraint
+from sqlalchemy import Integer, Column, String, ForeignKey, ForeignKeyConstraint
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from qualys import BaseMixin, Base
+from qualys.db import BaseMixin, Base
 
 
 class Request2Server(BaseMixin, Base):
